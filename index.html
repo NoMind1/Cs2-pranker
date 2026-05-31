@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS2 Skin Ruletka</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a14; font-family: 'Segoe UI', sans-serif; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+    .wrap { background: #13131f; border-radius: 20px; padding: 28px 20px; width: 100%; max-width: 560px; border: 1px solid #1e1e35; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .logo { font-size: 13px; color: #f0b429; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+    .header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+    .header p { font-size: 13px; color: #555; margin-top: 6px; }
+    .badge { display: inline-block; background: #4caf5022; color: #4caf50; border: 1px solid #4caf5055; border-radius: 20px; font-size: 12px; padding: 3px 14px; margin-top: 8px; }
+
+    .roulette-box { background: #0a0a14; border-radius: 14px; margin-bottom: 20px; overflow: hidden; position: relative; border: 1px solid #1e1e35; }
+    .roulette-track-wrap { overflow: hidden; position: relative; height: 130px; }
+    .roulette-track-wrap::before, .roulette-track-wrap::after { content: ''; position: absolute; top: 0; bottom: 0; width: 120px; z-index: 2; pointer-events: none; }
+    .roulette-track-wrap::before { left: 0; background: linear-gradient(to right, #0a0a14ee, transparent); }
+    .roulette-track-wrap::after { right: 0; background: linear-gradient(to left, #0a0a14ee, transparent); }
+    .center-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #f0b429; z-index: 3; transform: translateX(-50%); }
+    .center-tri-top { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid #f0b429; z-index: 4; }
+    .center-tri-bot { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 10px solid #f0b429; z-index: 4; }
+    .roulette-track { display: flex; gap: 6px; align-items: center; height: 130px; padding: 0 10px; }
+    .skin-card { flex-shrink: 0; width: 130px; height: 114px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 6px 7px; border: 1px solid rgba(255,255,255,0.07); position: relative; overflow: hidden; }
+    .skin-card img { width: 80px; height: 60px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+    .skin-card .skin-name { font-size: 9.5px; color: #bbb; text-align: center; line-height: 1.3; }
+    .skin-card .skin-price { font-size: 11px; font-weight: 700; }
+    .skin-card .rarity-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+
+    .spin-btn { width: 100%; padding: 16px; background: #f0b429; color: #0a0a14; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: transform 0.1s, opacity 0.2s; margin-bottom: 14px; text-transform: uppercase; }
+    .spin-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .spin-btn:hover:not(:disabled) { opacity: 0.92; }
+    .spin-btn:active:not(:disabled) { transform: scale(0.98); }
+    .info { text-align: center; font-size: 13px; color: #444; }
+    .info span { color: #4caf50; }
+
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .overlay.show { display: flex; }
+    .modal { background: #13131f; border-radius: 20px; padding: 36px 28px; text-align: center; width: 100%; max-width: 340px; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .win-modal { border: 2px solid #f0b429; }
+    .prank-modal { border: 2px solid #e24b4a; }
+    .modal-icon { font-size: 60px; margin-bottom: 12px; }
+    .win-img { width: 140px; height: 100px; object-fit: contain; margin: 0 auto 12px; display: block; filter: drop-shadow(0 4px 16px #f0b42955); }
+    .win-title { font-size: 13px; color: #f0b429; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+    .win-skin { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .win-wear { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .win-price { font-size: 28px; font-weight: 700; color: #4caf50; margin-bottom: 24px; }
+    .claim-btn { width: 100%; padding: 15px; background: #4caf50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; text-transform: uppercase; }
+    .claim-btn:hover { opacity: 0.9; }
+    .prank-title { font-size: 36px; font-weight: 700; color: #e24b4a; margin-bottom: 12px; }
+    .prank-text { font-size: 16px; color: #ccc; line-height: 1.7; margin-bottom: 24px; }
+    .restart-btn { width: 100%; padding: 13px; background: transparent; color: #666; border: 1px solid #2a2a3e; border-radius: 12px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+    .restart-btn:hover { background: #1a1a2e; color: #aaa; }
+
+    .sparks { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
+    .spark { position: absolute; width: 8px; height: 8px; border-radius: 50%; animation: fall 1.8s ease-in forwards; }
+    @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="logo">⚡ CS2 SKINS</div>
+    <h1>Skin Ruletka</h1>
+    <p>Omadingizni sinab ko'ring!</p>
+    <span class="badge">✓ Bugun 1 ta bepul urinish</span>
+  </div>
+
+  <div class="roulette-box">
+    <div class="roulette-track-wrap">
+      <div class="center-line"></div>
+      <div class="center-tri-top"></div>
+      <div class="center-tri-bot"></div>
+      <div class="roulette-track" id="track"></div>
+    </div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn" onclick="spin()">🎰 Aylantirish</button>
+  <div class="info">Bugun <span>1 ta bepul</span> urinish mavjud</div>
+</div>
+
+<div class="sparks" id="sparks"></div>
+
+<div class="overlay" id="winOverlay">
+  <div class="modal win-modal">
+    <div class="win-title">🎉 Tabriklaymiz!</div>
+    <img class="win-img" src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSroml3Fex_hVlZGn0d9OWdlQ5NQ7T_FLvwefng5K_vZ_InCBh7HQg5H7D30vg2Bz7FA/360fx360f" alt="AWP Dragon Lore">
+    <div class="win-skin">AWP | Dragon Lore</div>
+    <div class="win-wear">Factory New · Float: 0.01</div>
+    <div class="win-price">$1,847.00</div>
+    <button class="claim-btn" onclick="showPrank()">✅ Skinni olish</button>
+  </div>
+</div>
+
+<div class="overlay" id="prankOverlay">
+  <div class="modal prank-modal">
+    <div class="modal-icon">😂</div>
+    <div class="prank-title">PRANK!</div>
+    <div class="prank-text">Aldandingiz do'stim!<br>Bu haqiqiy emas edi 😄</div>
+    <button class="restart-btn" onclick="restart()">🔄 Qayta o'ynash</button>
+  </div>
+</div>
+
+<script>
+const skins = [
+  { name: "AK-47 | Redline", price: "$12", color: "#c0392b", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEm1Rd6dd2j6eQot2t2Abi_UpmNjj3dtTBIAZqYVqC_Vi4xOjng5S5vZ_XiSw0FRNEoQ/360fx360f" },
+  { name: "M4A4 | Asiimov", price: "$45", color: "#e67e22", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJkImKlf72LrfdqWhe5sN4mOTE8bP4jVC9vh5vaD33LdTBdlBtYQyE_AC9x-i808C57M-dnnM/360fx360f" },
+  { name: "AWP | Asiimov", price: "$89", color: "#f39c12", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W1mab2ZzjDLX9RmzxW7cB9h_vV8dr731GxrBs-YmijcYLEdgdoMV-D81K_wu-5h5Pu75ib1zI97bhIuJ0/360fx360f" },
+  { name: "Glock | Fade", price: "$380", color: "#9b59b6", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqMA9f1OD3YgJP7c6JkIGZkvPhDLfQkGlD18lwmO7Eu9X2iVHm_UM-YzHzd4SRIAQ2Yw7T_FDqxOzn05Pu78k_3yFnvSV4-7xtMg/360fx360f" },
+  { name: "USP-S | Kill Confirmed", price: "$18", color: "#3498db", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-JmoS0mvLwOqjummJW4NE_jruR9N633w3k-hBkN2v6J4TGJQE9YwvQ-gC4ye3nhJXu7M_InnJl6CJy-z-DgVpGYCn7zg/360fx360f" },
+  { name: "AK-47 | Vulcan", price: "$38", color: "#95a5a6", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrouklVGxqkFua2nxIYKWdlQ9YlqD-wTt2ObogJe9vJ-dnnJluiYi5H7D30vg2Bz7FA/360fx360f" },
+  { name: "M4A1-S | Hyper Beast", price: "$22", color: "#e74c3c", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-jJFBRw7OXNYgJL49ul2omwkuLwOq7c2G9u5Mp9g_rVu9Sm2lK1_BVpZmyhLYSXelBtZguFqAa2wLq915W17p_InXE2sqWLmuE/360fx360f" },
+  { name: "Desert Eagle | Blaze", price: "$490", color: "#f39c12", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAxf0Ob3djFN79ezkJKOhuf1P67Vl2Ju5Mx2gv2Pp9mm21Hh_UM6amH6JYTEIF9tYFjZ_FG5x-u8h5Pu75iRHXPdQ/360fx360f" },
+  { name: "Karambit | Fade", price: "$1,100", color: "#1abc9c", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJl4yPqPr1Ibndk2Ju5Mx2gv2Pp4qt3VHh-hE4ZGHydIeWcFE5YluErFe3wb_ng57pt5TAIW5mpCF2vHo/360fx360f" },
+  { name: "Butterfly | Doppler", price: "$1,350", color: "#8e44ad", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJl4yPqPr1Ibndk2Ju5Mx2gv2PpdT22Qy3-hJoYT-hLI6dcgdqNlnRqgXsxue5h5Pu75g9t3Ev/360fx360f" },
+];
+
+const jackpot = {
+  name: "AWP | Dragon Lore",
+  price: "$1,847",
+  color: "#f0b429",
+  img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSroml3Fex_hVlZGn0d9OWdlQ5NQ7T_FLvwefng5K_vZ_InCBh7HQg5H7D30vg2Bz7FA/360fx360f"
+};
+
+let spinning = false;
+
+function makeCard(s) {
+  const card = document.createElement('div');
+  card.className = 'skin-card';
+  card.style.background = s.color + '15';
+  card.style.borderColor = s.color + '40';
+  card.innerHTML = `
+    <img src="${s.img}" alt="${s.name}" onerror="this.style.display='none'">
+    <div class="skin-name">${s.name}</div>
+    <div class="skin-price" style="color:${s.color}">${s.price}</div>
+    <div class="rarity-bar" style="background:${s.color}"></div>
+  `;
+  return card;
+}
+
+function buildTrack() {
+  const track = document.getElementById('track');
+  track.innerHTML = '';
+  track.style.transition = 'none';
+  track.style.transform = 'translateX(0)';
+  const items = [];
+  for (let i = 0; i < 60; i++) {
+    items.push(skins[Math.floor(Math.random() * skins.length)]);
+  }
+  items[50] = jackpot;
+  items.forEach(s => track.appendChild(makeCard(s)));
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  buildTrack();
+  const track = document.getElementById('track');
+  const cardWidth = 136;
+  const containerCenter = Math.min(window.innerWidth, 560) / 2 - 20;
+  const offset = -(50 * cardWidth - containerCenter + 65);
+  void track.offsetWidth;
+  track.style.transition = 'transform 5.5s cubic-bezier(0.12, 0.8, 0.1, 1)';
+  track.style.transform = `translateX(${offset}px)`;
+  setTimeout(() => {
+    showSparks();
+    setTimeout(() => document.getElementById('winOverlay').classList.add('show'), 400);
+  }, 5700);
+}
+
+function showSparks() {
+  const colors = ['#f0b429','#4caf50','#e74c3c','#3498db','#9b59b6','#fff'];
+  const sparks = document.getElementById('sparks');
+  sparks.innerHTML = '';
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.cssText = `left:${Math.random()*100}vw;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*1.2}s;animation-duration:${1+Math.random()*0.8}s`;
+    sparks.appendChild(s);
+  }
+  setTimeout(() => sparks.innerHTML = '', 3000);
+}
+
+function showPrank() {
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('prankOverlay').classList.add('show');
+}
+
+function restart() {
+  document.getElementById('prankOverlay').classList.remove('show');
+  spinning = false;
+  document.getElementById('spinBtn').disabled = false;
+  buildTrack();
+}
+
+buildTrack();
+</script>
+</body>
+</html>
